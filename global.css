@@ -1,0 +1,114 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+/* ─── Design Tokens ──────────────────────────────────────────────────────── */
+
+@theme {
+  /* Brand Colors */
+  --color-brand-purple: #6c4ef5;
+  --color-brand-deep-purple: #5b3bf6;
+  --color-brand-blue: #4d8bff;
+  --color-brand-green: #21c16b;
+
+  /* Semantic Colors */
+  --color-success: #21c16b;
+  --color-warning: #ffc800;
+  --color-streak: #ff8a00;
+  --color-error: #ff4d4f;
+  --color-info: #4d8bff;
+
+  /* Neutral Colors */
+  --color-text-primary: #0d132b;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-surface: #f6f7fb;
+  --color-background: #ffffff;
+
+  /* Font Families */
+  --font-sans: Poppins-Regular;
+  --font-poppins: Poppins-Regular;
+  --font-poppins-medium: Poppins-Medium;
+  --font-poppins-semibold: Poppins-SemiBold;
+  --font-poppins-bold: Poppins-Bold;
+}
+
+/* ─── Platform Font Overrides ────────────────────────────────────────────── */
+
+@media android {
+  :root {
+    --font-mono: monospace;
+    --font-rounded: normal;
+    --font-serif: serif;
+    --font-sans: Poppins-Regular;
+  }
+}
+
+@media ios {
+  :root {
+    --font-mono: ui-monospace;
+    --font-serif: ui-serif;
+    --font-sans: Poppins-Regular;
+    --font-rounded: ui-rounded;
+  }
+}
+
+/* ─── Typography Utilities ───────────────────────────────────────────────── */
+
+@utility h1 {
+  font-family: Poppins-Bold;
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 700;
+}
+
+@utility h2 {
+  font-family: Poppins-SemiBold;
+  font-size: 24px;
+  line-height: 31px;
+  font-weight: 600;
+}
+
+@utility h3 {
+  font-family: Poppins-SemiBold;
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 600;
+}
+
+@utility h4 {
+  font-family: Poppins-Medium;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+@utility body-lg {
+  font-family: Poppins-Regular;
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 400;
+}
+
+@utility body-md {
+  font-family: Poppins-Regular;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 400;
+}
+
+@utility body-sm {
+  font-family: Poppins-Regular;
+  font-size: 13px;
+  line-height: 21px;
+  font-weight: 400;
+}
+
+@utility caption {
+  font-family: Poppins-Regular;
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 400;
+}
