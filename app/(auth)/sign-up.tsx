@@ -29,13 +29,16 @@ export default function SignUpScreen() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSocialAuth = async (strategy: "oauth_google" | "oauth_apple" | "oauth_facebook") => {
+  const handleSocialAuth = async (
+    strategy: "oauth_google" | "oauth_apple" | "oauth_facebook",
+  ) => {
     setError("");
     try {
-      const { createdSessionId, setActive, authSessionResult } = await startSSOFlow({
-        strategy,
-        redirectUrl: Linking.createURL("/"),
-      });
+      const { createdSessionId, setActive, authSessionResult } =
+        await startSSOFlow({
+          strategy,
+          redirectUrl: Linking.createURL("/"),
+        });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
         router.replace("/" as Href);
