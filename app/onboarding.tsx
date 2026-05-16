@@ -73,7 +73,7 @@ export default function OnboardingScreen() {
         <TouchableOpacity
           className="btn-primary"
           activeOpacity={0.85}
-          onPress={() => router.push("/onboarding")}
+          onPress={() => router.push("/(auth)/sign-up")}
         >
           <Text className="text-white text-[18px] font-poppins-semibold">
             Get Started

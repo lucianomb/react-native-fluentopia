@@ -1,0 +1,195 @@
+import VerificationModal from "@/components/VerificationModal";
+import { images } from "@/constants/images";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+
+export default function SignInScreen() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleSignIn = () => {
+    if (email.trim()) {
+      setModalVisible(true);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Back button */}
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="mt-2 ml-4 w-10 h-10 items-center justify-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={24} color="#0d132b" />
+          </TouchableOpacity>
+
+          {/* Title */}
+          <View className="px-6 mt-4">
+            <Text className="font-poppins-bold text-[28px] leading-9 text-text-primary">
+              Welcome back!
+            </Text>
+            <Text className="mt-1 font-poppins text-[15px] text-text-secondary leading-5.5">
+              Sign in to continue your journey 🌟
+            </Text>
+          </View>
+
+          {/* Mascot */}
+          <View className="items-center mt-6 mb-6">
+            <View className="w-37.5 h-37.5 items-center justify-center">
+              {/* Sparkles */}
+              <Text className="absolute top-1 -left-1 text-[#f5c842] text-base font-bold">
+                ✦
+              </Text>
+              <Text className="absolute top-0 -right-2 text-[#4d8bff] text-sm font-bold">
+                ✦
+              </Text>
+              <Text className="absolute bottom-2 -right-0.5 text-[#f5c842] text-xs font-bold">
+                ✦
+              </Text>
+              <Image
+                source={images.mascotAuth}
+                className="w-37.5 h-37.5"
+                resizeMode="contain"
+              />
+            </View>
+          </View>
+
+          {/* Form */}
+          <View className="px-6 gap-3">
+            {/* Email */}
+            <View className="border-[1.5px] border-border rounded-2xl px-4 py-3 bg-white">
+              <Text className="font-poppins text-[13px] text-text-secondary mb-0.5">
+                Email
+              </Text>
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@example.com"
+                placeholderTextColor="#9ca3af"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                style={styles.input}
+              />
+            </View>
+
+            {/* Sign In Button */}
+            <TouchableOpacity
+              className="btn-primary mt-2"
+              activeOpacity={0.85}
+              onPress={handleSignIn}
+            >
+              <Text className="text-white text-[17px] font-poppins-semibold">
+                Sign In
+              </Text>
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View className="flex-row items-center my-1 gap-2">
+              <View className="flex-1 h-px bg-border" />
+              <Text className="font-poppins text-[13px] text-text-secondary">
+                or continue with
+              </Text>
+              <View className="flex-1 h-px bg-border" />
+            </View>
+
+            {/* Social Buttons */}
+            <SocialButton
+              icon={<AntDesign name="google" size={22} color="#DB4437" />}
+              label="Continue with Google"
+            />
+            <SocialButton
+              icon={<Ionicons name="logo-facebook" size={24} color="#1877F2" />}
+              label="Continue with Facebook"
+            />
+            <SocialButton
+              icon={<AntDesign name="apple" size={22} color="#000000" />}
+              label="Continue with Apple"
+            />
+          </View>
+
+          {/* Footer */}
+          <View className="flex-row justify-center items-center mt-7">
+            <Text className="font-poppins text-sm text-text-secondary">
+              Don't have an account?{" "}
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.replace("/(auth)/sign-up")}
+              activeOpacity={0.7}
+            >
+              <Text className="font-poppins-semibold text-sm text-brand-purple">
+                Sign Up
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <VerificationModal
+        visible={modalVisible}
+        email={email}
+        onClose={() => setModalVisible(false)}
+      />
+    </SafeAreaView>
+  );
+}
+
+function SocialButton({
+  icon,
+  label,
+}: {
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <TouchableOpacity
+      className="flex-row items-center border-[1.5px] border-border rounded-2xl py-3.5 px-5 bg-white"
+      activeOpacity={0.8}
+    >
+      <View className="w-7 items-center">{icon}</View>
+      <Text className="font-poppins-medium text-[15px] text-text-primary ml-3">
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  scroll: {
+    paddingBottom: 32,
+  },
+  input: {
+    fontFamily: "Poppins-Regular",
+    fontSize: 16,
+    color: "#0d132b",
+    padding: 0,
+  },
+});
