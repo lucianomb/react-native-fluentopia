@@ -112,3 +112,24 @@
   line-height: 15px;
   font-weight: 400;
 }
+
+/* ─── Speech Bubble ──────────────────────────────────────────────────────── */
+
+@utility speech-bubble {
+  position: absolute;
+  border-radius: 16px;
+  padding-inline: 14px;
+  padding-block: 8px;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.06);
+}
+
+/* ─── Button ─────────────────────────────────────────────────────────────── */
+
+@utility btn-primary {
+  background-color: var(--color-brand-purple);
+  border-radius: 18px;
+  padding-block: 18px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
