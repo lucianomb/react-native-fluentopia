@@ -1,7 +1,9 @@
 import VerificationModal from "@/components/VerificationModal";
 import { images } from "@/constants/images";
+import { useSSO, useSignIn } from "@clerk/expo";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import * as Linking from "expo-linking";
+import { type Href, useRouter } from "expo-router";
 import { useState } from "react";
 import {
     Image,
@@ -18,12 +20,83 @@ import {
 
 export default function SignInScreen() {
   const router = useRouter();
+  const { signIn } = useSignIn();
+  const { startSSOFlow } = useSSO();
   const [email, setEmail] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignIn = () => {
-    if (email.trim()) {
+  const handleSocialAuth = async (strategy: "oauth_google" | "oauth_apple" | "oauth_facebook") => {
+    setError("");
+    try {
+      const { createdSessionId, setActive, authSessionResult } = await startSSOFlow({
+        strategy,
+        redirectUrl: Linking.createURL("/"),
+      });
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+        router.replace("/" as Href);
+      } else if (authSessionResult?.type === "cancel") {
+        // user dismissed the browser — do nothing
+      }
+    } catch (err: any) {
+      console.error("SSO error:", JSON.stringify(err, null, 2));
+      const message =
+        err?.errors?.[0]?.longMessage ??
+        err?.errors?.[0]?.message ??
+        err?.message ??
+        "Social sign in failed. Please try again.";
+      setError(message);
+    }
+  };
+
+  const handleSignIn = async () => {
+    if (!email.trim()) return;
+    setError("");
+    setIsLoading(true);
+    try {
+      const { error: createError } = await signIn.create({ identifier: email });
+      if (createError) {
+        setError(createError.message ?? "Sign in failed. Please try again.");
+        return;
+      }
+      const { error: sendError } = await signIn.emailCode.sendCode();
+      if (sendError) {
+        setError(sendError.message ?? "Failed to send code. Please try again.");
+        return;
+      }
       setModalVisible(true);
+    } catch (err: any) {
+      setError(err?.errors?.[0]?.message ?? "Something went wrong.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerify = async (code: string) => {
+    setError("");
+    const { error: verifyError } = await signIn.emailCode.verifyCode({ code });
+    if (verifyError) {
+      setError(verifyError.message ?? "Invalid code. Please try again.");
+      throw new Error(verifyError.message);
+    }
+    if (signIn.status === "complete") {
+      setModalVisible(false);
+      await signIn.finalize({
+        navigate: ({ decorateUrl }) => {
+          const url = decorateUrl("/");
+          router.replace(url as Href);
+        },
+      });
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      await signIn.emailCode.sendCode();
+    } catch {
+      // silently ignore
     }
   };
 
@@ -102,11 +175,20 @@ export default function SignInScreen() {
               className="btn-primary mt-2"
               activeOpacity={0.85}
               onPress={handleSignIn}
+              disabled={isLoading}
+              style={{ opacity: isLoading ? 0.7 : 1 }}
             >
               <Text className="text-white text-[17px] font-poppins-semibold">
-                Sign In
+                {isLoading ? "Sending code…" : "Sign In"}
               </Text>
             </TouchableOpacity>
+
+            {/* Error */}
+            {error ? (
+              <Text className="font-poppins text-[13px] text-[#e05252] text-center -mt-1">
+                {error}
+              </Text>
+            ) : null}
 
             {/* Divider */}
             <View className="flex-row items-center my-1 gap-2">
@@ -121,14 +203,17 @@ export default function SignInScreen() {
             <SocialButton
               icon={<AntDesign name="google" size={22} color="#DB4437" />}
               label="Continue with Google"
+              onPress={() => handleSocialAuth("oauth_google")}
             />
             <SocialButton
               icon={<Ionicons name="logo-facebook" size={24} color="#1877F2" />}
               label="Continue with Facebook"
+              onPress={() => handleSocialAuth("oauth_facebook")}
             />
             <SocialButton
               icon={<AntDesign name="apple" size={22} color="#000000" />}
               label="Continue with Apple"
+              onPress={() => handleSocialAuth("oauth_apple")}
             />
           </View>
 
@@ -153,6 +238,9 @@ export default function SignInScreen() {
         visible={modalVisible}
         email={email}
         onClose={() => setModalVisible(false)}
+        onVerify={handleVerify}
+        onResend={handleResend}
+        error={error}
       />
     </SafeAreaView>
   );
@@ -161,14 +249,17 @@ export default function SignInScreen() {
 function SocialButton({
   icon,
   label,
+  onPress,
 }: {
   icon: React.ReactNode;
   label: string;
+  onPress?: () => void;
 }) {
   return (
     <TouchableOpacity
       className="flex-row items-center border-[1.5px] border-border rounded-2xl py-3.5 px-5 bg-white"
       activeOpacity={0.8}
+      onPress={onPress}
     >
       <View className="w-7 items-center">{icon}</View>
       <Text className="font-poppins-medium text-[15px] text-text-primary ml-3">

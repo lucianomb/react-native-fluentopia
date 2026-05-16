@@ -1,4 +1,3 @@
-import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
     KeyboardAvoidingView,
@@ -15,31 +14,38 @@ interface VerificationModalProps {
   visible: boolean;
   email: string;
   onClose: () => void;
+  onVerify: (code: string) => Promise<void>;
+  onResend?: () => void;
+  error?: string;
 }
 
 export default function VerificationModal({
   visible,
   email,
   onClose,
+  onVerify,
+  onResend,
+  error,
 }: VerificationModalProps) {
-  const router = useRouter();
   const [code, setCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (visible) {
       setCode("");
+      setIsVerifying(false);
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [visible]);
 
   useEffect(() => {
-    if (code.length === 6) {
-      setTimeout(() => {
-        onClose();
+    if (code.length === 6 && !isVerifying) {
+      setIsVerifying(true);
+      onVerify(code).catch(() => {
+        setIsVerifying(false);
         setCode("");
-        router.replace("/");
-      }, 300);
+      });
     }
   }, [code]);
 
@@ -96,7 +102,7 @@ export default function VerificationModal({
               style={styles.otpRow}
             >
               {Array.from({ length: 6 }).map((_, i) => {
-                const isFocused = code.length === i;
+                const isFocused = code.length === i && !isVerifying;
                 const hasValue = i < code.length;
                 return (
                   <View
@@ -115,10 +121,13 @@ export default function VerificationModal({
               })}
             </TouchableOpacity>
 
+            {/* Error message */}
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
             {/* Resend */}
             <View style={styles.resendRow}>
               <Text style={styles.resendText}>Didn't get a code? </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={onResend} disabled={!onResend}>
                 <Text style={styles.resendLink}>Resend</Text>
               </TouchableOpacity>
             </View>
@@ -223,5 +232,13 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-SemiBold",
     fontSize: 14,
     color: "#6c4ef5",
+  },
+  errorText: {
+    fontFamily: "Poppins-Regular",
+    fontSize: 13,
+    color: "#e05252",
+    textAlign: "center",
+    marginBottom: 12,
+    marginTop: -16,
   },
 });

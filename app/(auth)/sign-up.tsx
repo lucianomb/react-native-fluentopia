@@ -1,7 +1,9 @@
 import VerificationModal from "@/components/VerificationModal";
 import { images } from "@/constants/images";
+import { useSSO, useSignUp } from "@clerk/expo";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import * as Linking from "expo-linking";
+import { type Href, useRouter } from "expo-router";
 import { useState } from "react";
 import {
     Image,
@@ -18,14 +20,79 @@ import {
 
 export default function SignUpScreen() {
   const router = useRouter();
+  const { signUp } = useSignUp();
+  const { startSSOFlow } = useSSO();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignUp = () => {
-    if (email.trim()) {
+  const handleSocialAuth = async (strategy: "oauth_google" | "oauth_apple" | "oauth_facebook") => {
+    setError("");
+    try {
+      const { createdSessionId, setActive, authSessionResult } = await startSSOFlow({
+        strategy,
+        redirectUrl: Linking.createURL("/"),
+      });
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+        router.replace("/" as Href);
+      } else if (authSessionResult?.type === "cancel") {
+        // user dismissed the browser — do nothing
+      }
+    } catch (err: any) {
+      console.error("SSO error:", JSON.stringify(err, null, 2));
+      const message =
+        err?.errors?.[0]?.longMessage ??
+        err?.errors?.[0]?.message ??
+        err?.message ??
+        "Social sign up failed. Please try again.";
+      setError(message);
+    }
+  };
+
+  const handleSignUp = async () => {
+    if (!email.trim() || !password.trim()) return;
+    setError("");
+    setIsLoading(true);
+    try {
+      const { error: signUpError } = await signUp.password({
+        emailAddress: email,
+        password,
+      });
+      if (signUpError) {
+        setError(signUpError.message ?? "Sign up failed. Please try again.");
+        return;
+      }
+      await signUp.verifications.sendEmailCode();
       setModalVisible(true);
+    } catch (err: any) {
+      setError(err?.errors?.[0]?.message ?? "Something went wrong.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerify = async (code: string) => {
+    setError("");
+    await signUp.verifications.verifyEmailCode({ code });
+    if (signUp.status === "complete") {
+      await signUp.finalize({
+        navigate: ({ decorateUrl }) => {
+          const url = decorateUrl("/");
+          router.replace(url as Href);
+        },
+      });
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      await signUp.verifications.sendEmailCode();
+    } catch {
+      // silently ignore
     }
   };
 
@@ -133,11 +200,20 @@ export default function SignUpScreen() {
               className="btn-primary mt-2"
               activeOpacity={0.85}
               onPress={handleSignUp}
+              disabled={isLoading}
+              style={{ opacity: isLoading ? 0.7 : 1 }}
             >
               <Text className="text-white text-[17px] font-poppins-semibold">
-                Sign Up
+                {isLoading ? "Creating account…" : "Sign Up"}
               </Text>
             </TouchableOpacity>
+
+            {/* Error */}
+            {error ? (
+              <Text className="font-poppins text-[13px] text-[#e05252] text-center -mt-1">
+                {error}
+              </Text>
+            ) : null}
 
             {/* Divider */}
             <View className="flex-row items-center my-1 gap-2">
@@ -152,14 +228,17 @@ export default function SignUpScreen() {
             <SocialButton
               icon={<AntDesign name="google" size={22} color="#DB4437" />}
               label="Continue with Google"
+              onPress={() => handleSocialAuth("oauth_google")}
             />
             <SocialButton
               icon={<Ionicons name="logo-facebook" size={24} color="#1877F2" />}
               label="Continue with Facebook"
+              onPress={() => handleSocialAuth("oauth_facebook")}
             />
             <SocialButton
               icon={<AntDesign name="apple" size={22} color="#000000" />}
               label="Continue with Apple"
+              onPress={() => handleSocialAuth("oauth_apple")}
             />
           </View>
 
@@ -177,6 +256,9 @@ export default function SignUpScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Required for Clerk bot protection */}
+          <View nativeID="clerk-captcha" />
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -184,6 +266,9 @@ export default function SignUpScreen() {
         visible={modalVisible}
         email={email}
         onClose={() => setModalVisible(false)}
+        onVerify={handleVerify}
+        onResend={handleResend}
+        error={error}
       />
     </SafeAreaView>
   );
@@ -192,14 +277,17 @@ export default function SignUpScreen() {
 function SocialButton({
   icon,
   label,
+  onPress,
 }: {
   icon: React.ReactNode;
   label: string;
+  onPress?: () => void;
 }) {
   return (
     <TouchableOpacity
       className="flex-row items-center border-[1.5px] border-border rounded-2xl py-3.5 px-5 bg-white"
       activeOpacity={0.8}
+      onPress={onPress}
     >
       <View className="w-7 items-center">{icon}</View>
       <Text className="font-poppins-medium text-[15px] text-text-primary ml-3">
