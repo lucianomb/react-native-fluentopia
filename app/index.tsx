@@ -5,9 +5,9 @@ import { useLanguageStore } from "@/store/languageStore";
 
 export default function Index() {
   const { isSignedIn, isLoaded } = useAuth();
-  const { selectedLanguage } = useLanguageStore();
+  const { selectedLanguage, isHydrated } = useLanguageStore();
 
-  if (!isLoaded) {
+  if (!isLoaded || !isHydrated) {
     return null;
   }
 

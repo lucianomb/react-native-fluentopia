@@ -1,16 +1,17 @@
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    LayoutChangeEvent,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  LayoutChangeEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -34,13 +35,7 @@ const TAB_ROUTES: TabRoute[] = [
   { name: "profile", title: "Profile", icon: "person-outline" },
 ];
 
-type CustomTabBarProps = {
-  state: { index: number; routes: { name: string; key: string }[] };
-  descriptors: Record<string, { options: { tabBarLabel?: string } }>;
-  navigation: { emit: Function; navigate: Function };
-};
-
-function CustomTabBar({ state, navigation }: CustomTabBarProps) {
+function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const [tabBarWidth, setTabBarWidth] = useState(0);
   const insets = useSafeAreaInsets();
   const bubbleX = useSharedValue(0);
@@ -101,7 +96,7 @@ function CustomTabBar({ state, navigation }: CustomTabBarProps) {
             style={styles.tabItem}
             onPress={handlePress}
             activeOpacity={0.8}
-            accessibilityRole="button"
+            accessibilityRole="tab"
             accessibilityLabel={tab.title}
             accessibilityState={{ selected: isActive }}
           >
@@ -162,7 +157,7 @@ const styles = StyleSheet.create({
 export default function TabLayout() {
   return (
     <Tabs
-      tabBar={(props) => <CustomTabBar {...(props as any)} />}
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="index" options={{ title: "Home" }} />
