@@ -1,10 +1,16 @@
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
-import { LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+    LayoutChangeEvent,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -57,15 +63,23 @@ function CustomTabBar({ state, navigation }: CustomTabBarProps) {
     if (width > 0 && width !== tabBarWidth) {
       setTabBarWidth(width);
       // Snap immediately on first measure (no animation)
-      const snapX = state.index * (width / TAB_COUNT) + (width / TAB_COUNT - BUBBLE_SIZE) / 2;
+      const snapX =
+        state.index * (width / TAB_COUNT) +
+        (width / TAB_COUNT - BUBBLE_SIZE) / 2;
       bubbleX.value = snapX;
     }
   };
 
   return (
-    <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 12) }]} onLayout={handleLayout}>
+    <View
+      style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 12) }]}
+      onLayout={handleLayout}
+    >
       {/* Sliding purple bubble — absolutely positioned */}
-      <Animated.View style={[styles.bubble, bubbleStyle]} pointerEvents="none" />
+      <Animated.View
+        style={[styles.bubble, bubbleStyle]}
+        pointerEvents="none"
+      />
 
       {TAB_ROUTES.map((tab, index) => {
         const isActive = state.index === index;
