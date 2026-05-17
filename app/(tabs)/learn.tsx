@@ -62,7 +62,7 @@ export default function LearnScreen() {
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => router.push("/(tabs)")}
+            onPress={() => router.back()}
             style={styles.backButton}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
