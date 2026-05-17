@@ -4,6 +4,7 @@ import { useSSO, useSignUp } from "@clerk/expo";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import { type Href, useRouter } from "expo-router";
+import { usePostHog } from "posthog-react-native";
 import { useState } from "react";
 import {
     Image,
@@ -22,6 +23,7 @@ export default function SignUpScreen() {
   const router = useRouter();
   const { signUp } = useSignUp();
   const { startSSOFlow } = useSSO();
+  const posthog = usePostHog();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -41,6 +43,7 @@ export default function SignUpScreen() {
         });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
+        posthog.capture("social_auth_completed", { strategy, screen: "sign_up" });
         router.replace("/" as Href);
       } else if (authSessionResult?.type === "cancel") {
         // user dismissed the browser — do nothing
@@ -69,6 +72,7 @@ export default function SignUpScreen() {
         setError(signUpError.message ?? "Sign up failed. Please try again.");
         return;
       }
+      posthog.capture("sign_up_submitted", { method: "email" });
       await signUp.verifications.sendEmailCode();
       setModalVisible(true);
     } catch (err: any) {
@@ -82,6 +86,13 @@ export default function SignUpScreen() {
     setError("");
     await signUp.verifications.verifyEmailCode({ code });
     if (signUp.status === "complete") {
+      const userId = signUp.createdUserId;
+      if (userId) {
+        posthog.identify(userId, {
+          $set_once: { first_sign_up_date: new Date().toISOString() },
+        });
+      }
+      posthog.capture("sign_up_completed", { method: "email" });
       await signUp.finalize({
         navigate: ({ decorateUrl }) => {
           const url = decorateUrl("/");

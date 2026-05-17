@@ -1,4 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import { usePostHog } from "posthog-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export type PlanItem = {
@@ -15,6 +16,16 @@ type TodayPlanListProps = {
 };
 
 export function TodayPlanList({ plan }: TodayPlanListProps) {
+  const posthog = usePostHog();
+
+  const handleItemPress = (item: PlanItem) => {
+    posthog.capture("plan_item_tapped", {
+      item_id: item.id,
+      item_title: item.title,
+      completed: item.completed,
+    });
+  };
+
   return (
     <View className="gap-3">
       <View className="flex-row items-center justify-between">
@@ -31,7 +42,11 @@ export function TodayPlanList({ plan }: TodayPlanListProps) {
       <View className="bg-white rounded-[20px] px-4 py-1">
         {plan.map((item, index) => (
           <View key={item.id}>
-            <View className="flex-row items-center py-3.5 gap-3.5">
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => handleItemPress(item)}
+              className="flex-row items-center py-3.5 gap-3.5"
+            >
               <View
                 className="w-11 h-11 rounded-xl items-center justify-center"
                 style={{ backgroundColor: item.iconBg }}
@@ -53,7 +68,7 @@ export function TodayPlanList({ plan }: TodayPlanListProps) {
               ) : (
                 <View className="w-7 h-7 rounded-[14px] border-2 border-[#d1d5db]" />
               )}
-            </View>
+            </TouchableOpacity>
             {index < plan.length - 1 && (
               <View className="h-px bg-[#f3f4f6] ml-14.5" />
             )}

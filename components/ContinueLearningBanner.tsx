@@ -1,4 +1,5 @@
 import { Image } from "@/tw/image";
+import { usePostHog } from "posthog-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 
 import { images } from "@/constants/images";
@@ -15,6 +16,16 @@ export function ContinueLearningBanner({
   currentUnit,
   currentUnitOrder,
 }: ContinueLearningBannerProps) {
+  const posthog = usePostHog();
+
+  const handleContinue = () => {
+    posthog.capture("continue_learning_tapped", {
+      language_id: selectedLanguage?.id,
+      language_name: selectedLanguage?.name,
+      unit_order: currentUnit?.order ?? currentUnitOrder,
+    });
+  };
+
   return (
     <View className="rounded-[20px] bg-brand-purple overflow-hidden flex-row items-end min-h-40">
       <View className="flex-1 p-5 gap-1">
@@ -30,6 +41,7 @@ export function ContinueLearningBanner({
         <TouchableOpacity
           className="border-[1.5px] border-white rounded-3xl px-5.5 py-2 self-start"
           activeOpacity={0.85}
+          onPress={handleContinue}
         >
           <Text className="font-poppins-semibold text-sm text-white">
             Continue

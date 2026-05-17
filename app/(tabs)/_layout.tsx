@@ -1,5 +1,7 @@
+import { useUser } from "@clerk/expo";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
+import { usePostHog } from "posthog-react-native";
 import { useEffect, useState } from "react";
 import {
   LayoutChangeEvent,
@@ -155,6 +157,16 @@ const styles = StyleSheet.create({
 });
 
 export default function TabLayout() {
+  const { user } = useUser();
+  const posthog = usePostHog();
+
+  // Identify the authenticated user once their Clerk ID is available
+  useEffect(() => {
+    if (user?.id) {
+      posthog.identify(user.id);
+    }
+  }, [user?.id]);
+
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}
