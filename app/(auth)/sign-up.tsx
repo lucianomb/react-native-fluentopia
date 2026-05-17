@@ -4,10 +4,8 @@ import { useSSO } from "@clerk/expo";
 import { useSignUp } from "@clerk/expo/legacy";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
-import * as WebBrowser from "expo-web-browser";
-
-WebBrowser.maybeCompleteAuthSession();
 import { type Href, useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import { usePostHog } from "posthog-react-native";
 import { useState } from "react";
 import {
@@ -22,6 +20,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignUpScreen() {
   const router = useRouter();
