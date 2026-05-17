@@ -1,4 +1,5 @@
 import { useClerk, useUser } from "@clerk/expo";
+import { type Href, useRouter } from "expo-router";
 import { usePostHog } from "posthog-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,11 +8,13 @@ export default function ProfileScreen() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const posthog = usePostHog();
+  const router = useRouter();
 
   const handleSignOut = async () => {
     await posthog.capture("sign_out");
     posthog.reset();
-    signOut();
+    await signOut();
+    router.replace("/onboarding" as Href);
   };
 
   return (

@@ -4,6 +4,9 @@ import { useSSO } from "@clerk/expo";
 import { useSignUp } from "@clerk/expo/legacy";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
+
+WebBrowser.maybeCompleteAuthSession();
 import { type Href, useRouter } from "expo-router";
 import { usePostHog } from "posthog-react-native";
 import { useState } from "react";
@@ -51,7 +54,7 @@ export default function SignUpScreen() {
           strategy,
           screen: "sign_up",
         });
-        router.replace("/" as Href);
+        router.replace("/(tabs)" as Href);
       } else if (authSessionResult?.type === "cancel") {
         // user dismissed — do nothing
       }
@@ -94,7 +97,7 @@ export default function SignUpScreen() {
         posthog.capture("sign_up_completed", { method: "email" });
         setModalVisible(false);
         await setActive({ session: result.createdSessionId });
-        router.replace("/" as Href);
+        router.replace("/(tabs)" as Href);
       }
     } catch (err: any) {
       const message =
