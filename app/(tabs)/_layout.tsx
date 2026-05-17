@@ -165,7 +165,7 @@ export default function TabLayout() {
     if (user?.id) {
       posthog.identify(user.id);
     }
-  }, [user?.id]);
+  }, [user?.id, posthog]);
 
   return (
     <Tabs

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface VerificationModalProps {
@@ -47,7 +47,7 @@ export default function VerificationModal({
         setCode("");
       });
     }
-  }, [code]);
+  }, [code, isVerifying, onVerify]);
 
   const handleChangeText = (text: string) => {
     const digits = text.replace(/[^0-9]/g, "").slice(0, 6);

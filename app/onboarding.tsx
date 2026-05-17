@@ -56,7 +56,7 @@ export default function OnboardingScreen() {
           </View>
 
           {/* 你好! bubble - right */}
-          <View className="speech-bubble bg-[#fdeaea] right-0 top-[150px]">
+          <View className="speech-bubble bg-[#fdeaea] right-0 top-37.5">
             <Text className="text-[15px] font-poppins-medium text-[#e05252]">
               你好!
             </Text>

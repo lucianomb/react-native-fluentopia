@@ -5,8 +5,8 @@ import { tokenCache } from "@clerk/expo/token-cache";
 import { useFonts } from "expo-font";
 import { Stack, useGlobalSearchParams, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useRef } from "react";
 import { PostHogProvider } from "posthog-react-native";
+import { useEffect, useMemo, useRef } from "react";
 
 import { posthog } from "../src/config/posthog";
 
@@ -39,6 +39,9 @@ export default function RootLayout() {
   }, [loaded]);
 
   // Manual screen tracking for Expo Router
+  const paramsKey = useMemo(() => JSON.stringify(params), [params]);
+
+  // Manual screen tracking for Expo Router
   useEffect(() => {
     if (previousPathname.current !== pathname) {
       posthog.screen(pathname, {
@@ -47,7 +50,7 @@ export default function RootLayout() {
       });
       previousPathname.current = pathname;
     }
-  }, [pathname, params]);
+  }, [pathname, paramsKey]);
 
   if (!loaded) {
     return null;

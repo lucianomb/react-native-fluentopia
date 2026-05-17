@@ -8,8 +8,8 @@ export default function ProfileScreen() {
   const { signOut } = useClerk();
   const posthog = usePostHog();
 
-  const handleSignOut = () => {
-    posthog.capture("sign_out");
+  const handleSignOut = async () => {
+    await posthog.capture("sign_out");
     posthog.reset();
     signOut();
   };
