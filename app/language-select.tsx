@@ -5,6 +5,7 @@ import { Image } from "@/tw/image";
 import type { Language } from "@/types/learning";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { usePostHog } from "posthog-react-native";
 import { useState } from "react";
 import {
     SafeAreaView,
@@ -18,6 +19,7 @@ import {
 export default function LanguageSelectScreen() {
   const router = useRouter();
   const { setSelectedLanguage } = useLanguageStore();
+  const posthog = usePostHog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
@@ -29,6 +31,10 @@ export default function LanguageSelectScreen() {
 
   function handleConfirm() {
     if (!selectedId || !selectedLanguage) return;
+    posthog.capture("language_selected", {
+      language_id: selectedLanguage.id,
+      language_name: selectedLanguage.name,
+    });
     setSelectedLanguage(selectedLanguage);
     router.replace("/");
   }

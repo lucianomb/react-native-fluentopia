@@ -1,5 +1,6 @@
 import { images } from "@/constants/images";
 import { useRouter } from "expo-router";
+import { usePostHog } from "posthog-react-native";
 import {
     Image,
     SafeAreaView,
@@ -11,6 +12,7 @@ import {
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const posthog = usePostHog();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -54,7 +56,7 @@ export default function OnboardingScreen() {
           </View>
 
           {/* 你好! bubble - right */}
-          <View className="speech-bubble bg-[#fdeaea] right-0 top-[150px]">
+          <View className="speech-bubble bg-[#fdeaea] right-0 top-37.5">
             <Text className="text-[15px] font-poppins-medium text-[#e05252]">
               你好!
             </Text>
@@ -73,7 +75,10 @@ export default function OnboardingScreen() {
         <TouchableOpacity
           className="btn-primary"
           activeOpacity={0.85}
-          onPress={() => router.push("/(auth)/sign-up")}
+          onPress={() => {
+            posthog.capture("onboarding_get_started_tapped");
+            router.push("/(auth)/sign-up");
+          }}
         >
           <Text className="text-white text-[18px] font-poppins-semibold">
             Get Started

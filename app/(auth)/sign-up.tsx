@@ -1,27 +1,33 @@
 import VerificationModal from "@/components/VerificationModal";
 import { images } from "@/constants/images";
-import { useSSO, useSignUp } from "@clerk/expo";
+import { useSSO } from "@clerk/expo";
+import { useSignUp } from "@clerk/expo/legacy";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
+
+WebBrowser.maybeCompleteAuthSession();
 import { type Href, useRouter } from "expo-router";
+import { usePostHog } from "posthog-react-native";
 import { useState } from "react";
 import {
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const { signUp } = useSignUp();
+  const { signUp, isLoaded, setActive } = useSignUp();
   const { startSSOFlow } = useSSO();
+  const posthog = usePostHog();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -34,19 +40,25 @@ export default function SignUpScreen() {
   ) => {
     setError("");
     try {
-      const { createdSessionId, setActive, authSessionResult } =
-        await startSSOFlow({
+      const {
+        createdSessionId,
+        setActive: setActiveSession,
+        authSessionResult,
+      } = await startSSOFlow({
+        strategy,
+        redirectUrl: Linking.createURL("/"),
+      });
+      if (createdSessionId && setActiveSession) {
+        await setActiveSession({ session: createdSessionId });
+        posthog.capture("social_auth_completed", {
           strategy,
-          redirectUrl: Linking.createURL("/"),
+          screen: "sign_up",
         });
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
-        router.replace("/" as Href);
+        router.replace("/(tabs)" as Href);
       } else if (authSessionResult?.type === "cancel") {
-        // user dismissed the browser — do nothing
+        // user dismissed — do nothing
       }
     } catch (err: any) {
-      console.error("SSO error:", JSON.stringify(err, null, 2));
       const message =
         err?.errors?.[0]?.longMessage ??
         err?.errors?.[0]?.message ??
@@ -58,18 +70,16 @@ export default function SignUpScreen() {
 
   const handleSignUp = async () => {
     if (!email.trim() || !password.trim()) return;
+    if (!isLoaded) return;
     setError("");
     setIsLoading(true);
     try {
-      const { error: signUpError } = await signUp.password({
+      await signUp.create({
         emailAddress: email,
         password,
       });
-      if (signUpError) {
-        setError(signUpError.message ?? "Sign up failed. Please try again.");
-        return;
-      }
-      await signUp.verifications.sendEmailCode();
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      posthog.capture("sign_up_submitted", { method: "email" });
       setModalVisible(true);
     } catch (err: any) {
       setError(err?.errors?.[0]?.message ?? "Something went wrong.");
@@ -79,21 +89,28 @@ export default function SignUpScreen() {
   };
 
   const handleVerify = async (code: string) => {
+    if (!isLoaded) return;
     setError("");
-    await signUp.verifications.verifyEmailCode({ code });
-    if (signUp.status === "complete") {
-      await signUp.finalize({
-        navigate: ({ decorateUrl }) => {
-          const url = decorateUrl("/");
-          router.replace(url as Href);
-        },
-      });
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code });
+      if (result.status === "complete") {
+        posthog.capture("sign_up_completed", { method: "email" });
+        setModalVisible(false);
+        await setActive({ session: result.createdSessionId });
+        router.replace("/(tabs)" as Href);
+      }
+    } catch (err: any) {
+      const message =
+        err?.errors?.[0]?.message ?? "Invalid code. Please try again.";
+      setError(message);
+      throw new Error(message);
     }
   };
 
   const handleResend = async () => {
+    if (!isLoaded) return;
     try {
-      await signUp.verifications.sendEmailCode();
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     } catch {
       // silently ignore
     }
@@ -132,7 +149,6 @@ export default function SignUpScreen() {
           {/* Mascot */}
           <View className="items-center mt-6 mb-6">
             <View className="w-37.5 h-37.5 items-center justify-center">
-              {/* Sparkles */}
               <Text className="absolute top-1 -left-1 text-[#f5c842] text-base font-bold">
                 ✦
               </Text>
@@ -143,7 +159,7 @@ export default function SignUpScreen() {
                 ✦
               </Text>
               <Image
-                source={images.mascotAuth}
+                source={images.mascotAuth2}
                 className="w-37.5 h-37.5"
                 resizeMode="contain"
               />

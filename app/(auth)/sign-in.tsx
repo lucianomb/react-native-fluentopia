@@ -3,7 +3,11 @@ import { images } from "@/constants/images";
 import { useSSO, useSignIn } from "@clerk/expo";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
+
+WebBrowser.maybeCompleteAuthSession();
 import { type Href, useRouter } from "expo-router";
+import { usePostHog } from "posthog-react-native";
 import { useState } from "react";
 import {
     Image,
@@ -22,6 +26,7 @@ export default function SignInScreen() {
   const router = useRouter();
   const { signIn } = useSignIn();
   const { startSSOFlow } = useSSO();
+  const posthog = usePostHog();
   const [email, setEmail] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [error, setError] = useState("");
@@ -39,7 +44,8 @@ export default function SignInScreen() {
         });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
-        router.replace("/" as Href);
+        posthog.capture("social_auth_completed", { strategy, screen: "sign_in" });
+        router.replace("/(tabs)" as Href);
       } else if (authSessionResult?.type === "cancel") {
         // user dismissed the browser — do nothing
       }
@@ -69,6 +75,7 @@ export default function SignInScreen() {
         setError(sendError.message ?? "Failed to send code. Please try again.");
         return;
       }
+      posthog.capture("sign_in_submitted", { method: "email" });
       setModalVisible(true);
     } catch (err: any) {
       setError(err?.errors?.[0]?.message ?? "Something went wrong.");
@@ -85,6 +92,7 @@ export default function SignInScreen() {
       throw new Error(verifyError.message);
     }
     if (signIn.status === "complete") {
+      posthog.capture("sign_in_completed", { method: "email" });
       setModalVisible(false);
       await signIn.finalize({
         navigate: ({ decorateUrl }) => {
