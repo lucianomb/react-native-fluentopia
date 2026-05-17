@@ -1,5 +1,6 @@
 import { images } from "@/constants/images";
 import { languages } from "@/data/languages";
+import { useLanguageStore } from "@/store/languageStore";
 import { Image } from "@/tw/image";
 import type { Language } from "@/types/learning";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,6 +17,7 @@ import {
 
 export default function LanguageSelectScreen() {
   const router = useRouter();
+  const { setSelectedLanguage } = useLanguageStore();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
@@ -26,7 +28,8 @@ export default function LanguageSelectScreen() {
   const selectedLanguage = languages.find((l) => l.id === selectedId);
 
   function handleConfirm() {
-    if (!selectedId) return;
+    if (!selectedId || !selectedLanguage) return;
+    setSelectedLanguage(selectedLanguage);
     router.replace("/");
   }
 
@@ -131,12 +134,18 @@ function LanguageItem({
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
-      className={
-        selected
-          ? "flex-row items-center py-4 px-4 mb-2 rounded-2xl bg-[#f0ecff] border border-brand-purple"
-          : "flex-row items-center py-4 border-b border-border"
-      }
+      className="flex-row items-center py-4 px-4 rounded-2xl border mb-2"
+      style={{
+        borderColor: selected ? "#6c4ef5" : "transparent",
+        backgroundColor: selected ? "#f0ecff" : "transparent",
+      }}
     >
+      {!selected && (
+        <View
+          className="absolute bottom-0 left-4 right-4"
+          style={{ height: 1, backgroundColor: "#e5e7eb" }}
+        />
+      )}
       {/* Flag */}
       <View className="w-12 h-12 rounded-full overflow-hidden bg-surface">
         <Image

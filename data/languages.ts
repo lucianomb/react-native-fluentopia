@@ -28,15 +28,15 @@ export const languages: Language[] = [
     totalUnits: 2,
     learners: "12.7M",
   },
-  {
-    id: "ko",
-    name: "Korean",
-    nativeName: "한국어",
-    flag: "https://flagcdn.com/w320/kr.png",
-    difficulty: "intermediate",
-    totalUnits: 2,
-    learners: "9.3M",
-  },
+  // {
+  //   id: "ko",
+  //   name: "Korean",
+  //   nativeName: "한국어",
+  //   flag: "https://flagcdn.com/w320/kr.png",
+  //   difficulty: "intermediate",
+  //   totalUnits: 2,
+  //   learners: "9.3M",
+  // },
   {
     id: "de",
     name: "German",
@@ -46,15 +46,7 @@ export const languages: Language[] = [
     totalUnits: 2,
     learners: "8.1M",
   },
-  {
-    id: "zh",
-    name: "Chinese",
-    nativeName: "中文",
-    flag: "https://flagcdn.com/w320/cn.png",
-    difficulty: "advanced",
-    totalUnits: 2,
-    learners: "7.4M",
-  },
+  // {
 ];
 
 export function getLanguageById(id: string): Language | undefined {
